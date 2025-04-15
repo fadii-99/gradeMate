@@ -22,6 +22,8 @@ from django.db.models import Avg, Max, Min
 from quize.ocr import extract_text, correct_cpp_code
 import random
 # from quize.AST_Levenshtein import evaluate_quiz 
+from rapidfuzz import fuzz
+import tempfile
 
 
 @api_view(['POST'])
@@ -278,7 +280,8 @@ def get_all_quizes(request):
 @jwt_required
 def check_plagiarism(request):
     try:
-        quiz_id = request.data.get("quiz_id")
+        print("Request Data:", request.data)
+        quiz_id = request.data.get("quizId")
         if not quiz_id:
             return JsonResponse({"error": "Quiz ID is required"}, status=400)
 
@@ -287,16 +290,8 @@ def check_plagiarism(request):
         if not submissions:
             return JsonResponse({"error": "No submissions found for this quiz."}, status=404)
 
-        threshold = quiz.similarity_threshold
+        threshold = 80.0
 
-        def jaccard_similarity(text1, text2):
-            words1 = set(text1.lower().split())
-            words2 = set(text2.lower().split())
-            if not words1 or not words2:
-                return 0.0
-            intersection = words1.intersection(words2)
-            union = words1.union(words2)
-            return len(intersection) / len(union)
 
         plagiarism_results = []
 
@@ -306,13 +301,14 @@ def check_plagiarism(request):
                 sub1 = submissions[i]
                 sub2 = submissions[j]
                 print(f"Comparing {sub1.student} with {sub2.student}")
-                sim_score = jaccard_similarity(sub1.extracted_text, sub2.extracted_text)
+                sim_score = fuzz.token_sort_ratio(sub1.extracted_text, sub2.extracted_text)
+                print(round(sim_score, 2))
 
                 # Build the result in a structure similar to your mock data.
                 result = {
                     "student1": sub1.student,  # In this demo, student is a name string.
                     "student2": sub2.student,
-                    "similarity": round(sim_score, 2),
+                    "similarity": round(sim_score, 2) / 100,
                     "flag": sim_score >= threshold,
                     "matches": []  # Optionally, you might add details such as common words.
                 }
@@ -331,65 +327,5 @@ def check_plagiarism(request):
         return JsonResponse({"error": "Quiz not found."}, status=404)
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
