@@ -81,7 +81,7 @@ def login(request):
         userData = {
             "id": user.id,
             "email": user.email,
-            "createdAt": user.created_at.strftime("%-d %b %Y"),
+            "createdAt": user.created_at.strftime("%d %b %Y"),
         }
 
         token = generate_jwt_token(user)
