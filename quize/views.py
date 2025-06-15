@@ -21,7 +21,7 @@ from django.db.models import Avg, Max, Min
 
 from quize.ocr import extract_text, correct_cpp_code
 import random
-# from quize.AST_Levenshtein import evaluate_quiz 
+from quize.AST_Levenshtein import evaluate_quiz 
 from rapidfuzz import fuzz
 import tempfile
 
@@ -142,8 +142,8 @@ def upload_quiz(request):
         total_students = len(saved_submissions)
         averageScore = 82.5  # Fixed average score for mock grading
         
-        # lev_score, ast_score = evaluate_quiz(corrected_solution_text, corrected_text)  
-        lev_score, ast_score = 11, 22
+        lev_score, ast_score = evaluate_quiz(corrected_solution_text, corrected_text)  
+        # lev_score, ast_score = 11, 22
 
         final_score = ((lev_score * (similarity_threshold + 10)) + 
                    (ast_score * (logic_weight + 10))) / 100    
@@ -327,5 +327,4 @@ def check_plagiarism(request):
         return JsonResponse({"error": "Quiz not found."}, status=404)
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
-
 

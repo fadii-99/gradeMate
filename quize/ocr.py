@@ -72,4 +72,3 @@ def correct_cpp_code(lines):
 
     return corrected_lines
 
-
